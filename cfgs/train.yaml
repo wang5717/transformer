@@ -126,6 +126,7 @@ debug: false
 # epoch interval for model saving. if 0 only save last and best models
 save_model_interval: 5
 # distributed training parameters
+distributed: false
 # number of distributed processes
 world_size: 1
 # url used to set up distributed training
