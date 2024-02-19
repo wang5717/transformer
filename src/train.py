@@ -38,8 +38,8 @@ ex.add_named_config('multi_frame', 'cfgs/train_multi_frame.yaml')
 def train(args: Namespace) -> None:
     print(args)
 
-    utils.init_distributed_mode(args)
-    print("git:\n  {}\n".format(utils.get_sha()))
+    # utils.init_distributed_mode(args)
+    # print("git:\n  {}\n".format(utils.get_sha()))
 
     if args.debug:
         # args.tracking_eval = False
