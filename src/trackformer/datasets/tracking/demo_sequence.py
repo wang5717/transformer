@@ -34,6 +34,8 @@ class DemoSequence(Dataset):
 
         self._data_dir = Path(root_dir)
         assert self._data_dir.is_dir(), f'data_root_dir:{root_dir} does not exist.'
+        print(f'{self._data_dir}')
+        print(f'#### of images found in root dir: {len(os.listdir(self._data_dir))}')
 
         self.transforms = Compose(make_coco_transforms('val', img_transform, overflow_boxes=True))
 
@@ -90,7 +92,8 @@ class DemoSequence(Dataset):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        result_file_path = osp.join(output_dir, self._data_dir.name)
+        result_file_path = osp.join(output_dir, self._data_dir.name, 'results.csv')
+        print(f'Result file path: {result_file_path}')
 
         with open(result_file_path, "w") as r_file:
             writer = csv.writer(r_file, delimiter=',')
