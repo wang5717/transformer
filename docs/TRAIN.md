@@ -16,7 +16,7 @@ python src/train.py with \
     deformable \
     multi_frame \
     tracking \
-    output_dir=models/crowdhuman_deformable_multi_frame \
+    output_dir=models/crowdhuman_deformable_multi_frame
 ```
 
 ## MOT17
@@ -29,7 +29,7 @@ python src/train.py with \
     deformable \
     multi_frame \
     tracking \
-    output_dir=models/mot17_crowdhuman_deformable_multi_frame \
+    output_dir=models/mot17_crowdhuman_deformable_multi_frame
 ```
 
 #### Public detections
@@ -37,10 +37,9 @@ python src/train.py with \
 ```
 python src/train.py with \
     mot17 \
-    deformable \
     multi_frame \
     tracking \
-    output_dir=models/mot17_deformable_multi_frame \
+    output_dir=models/mot17_deformable_multi_frame
 ```
 
 ## MOT20
@@ -53,7 +52,7 @@ python src/train.py with \
     deformable \
     multi_frame \
     tracking \
-    output_dir=models/mot20_crowdhuman_deformable_multi_frame \
+    output_dir=models/mot20_crowdhuman_deformable_multi_frame
 ```
 
 ## MOTS20

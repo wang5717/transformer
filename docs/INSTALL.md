@@ -6,12 +6,21 @@
     cd trackformer
     ```
 
-2. Install packages for Python 3.7:
+2. Install packages for Python 3.8:
 
-    1. `pip3 install -r requirements.txt`
-    2. Install PyTorch 1.5 and torchvision 0.6 from [here](https://pytorch.org/get-started/previous-versions/#v150).
-    3. Install pycocotools (with fixed ignore flag): `pip3 install -U 'git+https://github.com/timmeinhardt/cocoapi.git#subdirectory=PythonAPI'`
-    5. Install MultiScaleDeformableAttention package: `python src/trackformer/models/ops/setup.py build --build-base=src/trackformer/models/ops/ install`
+    1. `conda create -n perceiver_track python=3.8`
+    2. `conda activate perceiver_track`
+    3. `conda install conda-forge::motmetrics=1.2.0`
+    3. `pip install sacred==0.8.5` it didn't work with conda `conda install conda-forge::sacred=0.8.5`
+    3. `pip install visdom==0.1.8.9` it didn't work with conda `conda install conda-forge::visdom=0.1.8.9`
+    3. `conda install conda-forge::pycocotools`
+    3. `conda install scikit-image==0.17.2` # it is needed for dataset conversion
+    3. `conda install conda-forge::tqdm=4.46.1`
+    3. `conda install conda-forge::seaborn=0.10.1`
+    3. `pip install perceiver-pytorch`
+
+    5. Install MultiScaleDeformableAttention
+       package: `python src/trackformer/models/ops/setup.py build --build-base=src/trackformer/models/ops/ install`
 
 3. Download and unpack datasets in the `data` directory:
 

@@ -1,0 +1,15 @@
+model: perceiver
+
+# Backbone parameters
+backbone: "resnet50"  # Name of the convolutional backbone to use
+
+# Perceiver model parameters
+num_freq_bands: 6  # Number of frequency bands
+max_freq: 10  # Maximum frequency, depending on data granularity
+enc_layers: 6  # Number of encoding layers in the transformer
+num_queries: 100  # Number of latents/queries/centroids
+hidden_dim: 256  # Latent dimension size
+enc_nheads_cross: 8  # Number of cross attention heads in the perceiver encoder
+nheads: 1  # Number of heads for latent self-attention
+dropout: 0.0  # Dropout rate in the transformer
+self_per_cross_attn: 8  # Number of self-attention blocks per cross attention

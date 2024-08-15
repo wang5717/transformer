@@ -17,6 +17,7 @@ deformable: false
 with_box_refine: false
 two_stage: false
 # Model parameters
+model: 'detr'
 freeze_detr: false
 load_mask_head_from_model: null
 # Backbone
@@ -46,6 +47,11 @@ num_queries: 100
 pre_norm: false
 dec_n_points: 4
 enc_n_points: 4
+# Perceiver cross-attention
+enc_nheads_cross: 1  # Number of cross attention heads in the perceiver encoder
+self_per_cross_attn: 1  # Number of self-attention blocks per cross attention
+num_freq_bands: 6  # Number of frequency bands
+max_freq: 10  # Maximum frequency, depending on data granularity
 # Tracking
 tracking: false
 # In addition to detection also run tracking evaluation with default configuration from `cfgs/track.yaml`
