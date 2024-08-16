@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from trackformer.models import build_backbone
 from trackformer.models.perceiver import Perceiver
-from trackformer.util.misc import NestedTensor
+from trackformer.util.misc import NestedTensor, nested_tensor_from_tensor_list
 
 
 class PerceiverDetection(nn.Module):
@@ -17,6 +17,9 @@ class PerceiverDetection(nn.Module):
         self.classification_head = classification_head
 
     def forward(self, samples: NestedTensor):
+        if not isinstance(samples, NestedTensor):
+            samples = nested_tensor_from_tensor_list(samples)
+
         features_nested_tensor = self.backbone(samples)
         src, mask = features_nested_tensor.decompose()
         src = src.permute(0, 2, 3, 1)
