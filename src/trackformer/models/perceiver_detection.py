@@ -16,7 +16,7 @@ class PerceiverDetection(nn.Module):
         self.perceiver = perceiver
         self.classification_head = classification_head
 
-    def forward(self, samples: NestedTensor):
+    def forward(self, samples: NestedTensor, targets: list = None):
         if not isinstance(samples, NestedTensor):
             samples = nested_tensor_from_tensor_list(samples)
 
@@ -30,8 +30,8 @@ class PerceiverDetection(nn.Module):
             return_embeddings=True
         )
         out = self.classification_head(hs)
-        return out
 
+        return out, targets, features_nested_tensor, None, hs
 
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
