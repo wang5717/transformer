@@ -19,7 +19,6 @@ class DETRTrackingBase(nn.Module):
                  track_query_false_negative_prob: float = 0.0,
                  matcher: HungarianMatcher = None,
                  backprop_prev_frame=False):
-        super().__init__()
         self._matcher = matcher
         self._track_query_false_positive_prob = track_query_false_positive_prob
         self._track_query_false_negative_prob = track_query_false_negative_prob
