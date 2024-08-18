@@ -67,7 +67,7 @@ class TrackingBaseModel(nn.Module):
                 random_subset_mask = torch.randperm(len(prev_target_ind))[:num_prev_target_ind]
 
                 # if not len(random_subset_mask):
-                #     target['track_query_hs_embeds'] = torch.zeros(0, self.hidden_dim).float().to(device)
+                #     target['track_query_hs_embeds'] = torch.zeros(0, self._object_detection_model.hidden_dim).float().to(device)
                 #     target['track_queries_placeholder_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                 #     target['track_queries_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                 #     target['track_queries_fal_pos_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
@@ -199,7 +199,7 @@ class TrackingBaseModel(nn.Module):
         #     raise NotImplementedError
 
         #     target['track_query_hs_embeds'] = torch.cat(
-        #         [torch.zeros(num_add, self.hidden_dim).to(device),
+        #         [torch.zeros(num_add, self._object_detection_model.hidden_dim).to(device),
         #          target['track_query_hs_embeds']
         #     ])
         #     target['track_query_boxes'] = torch.cat(
@@ -269,7 +269,7 @@ class TrackingBaseModel(nn.Module):
                 for target in targets:
                     device = target['boxes'].device
 
-                    target['track_query_hs_embeds'] = torch.zeros(0, self.hidden_dim).float().to(device)
+                    target['track_query_hs_embeds'] = torch.zeros(0, self._object_detection_model.hidden_dim).float().to(device)
                     # target['track_queries_placeholder_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                     target['track_queries_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                     target['track_queries_fal_pos_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
