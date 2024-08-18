@@ -15,6 +15,7 @@ class PerceiverDetection(nn.Module):
         self.backbone = backbone
         self.perceiver = perceiver
         self.classification_head = classification_head
+        self.num_queries = perceiver.latents.shape[0]
 
     def forward(self, samples: NestedTensor, targets: list = None):
         if not isinstance(samples, NestedTensor):

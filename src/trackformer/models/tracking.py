@@ -68,9 +68,9 @@ class TrackingBaseModel(nn.Module):
 
                 # if not len(random_subset_mask):
                 #     target['track_query_hs_embeds'] = torch.zeros(0, self.hidden_dim).float().to(device)
-                #     target['track_queries_placeholder_mask'] = torch.zeros(self.num_queries).bool().to(device)
-                #     target['track_queries_mask'] = torch.zeros(self.num_queries).bool().to(device)
-                #     target['track_queries_fal_pos_mask'] = torch.zeros(self.num_queries).bool().to(device)
+                #     target['track_queries_placeholder_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
+                #     target['track_queries_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
+                #     target['track_queries_fal_pos_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                 #     target['track_query_boxes'] = torch.zeros(0, 4).to(device)
                 #     target['track_query_match_ids'] = torch.tensor([]).long().to(device)
 
@@ -178,12 +178,12 @@ class TrackingBaseModel(nn.Module):
 
             target['track_queries_mask'] = torch.cat([
                 track_queries_mask,
-                torch.tensor([False, ] * self.num_queries).to(device)
+                torch.tensor([False, ] * self._object_detection_model.num_queries).to(device)
             ]).bool()
 
             target['track_queries_fal_pos_mask'] = torch.cat([
                 track_queries_fal_pos_mask,
-                torch.tensor([False, ] * self.num_queries).to(device)
+                torch.tensor([False, ] * self._object_detection_model.num_queries).to(device)
             ]).bool()
 
         # add placeholder track queries to allow for batch sizes > 1
@@ -270,9 +270,9 @@ class TrackingBaseModel(nn.Module):
                     device = target['boxes'].device
 
                     target['track_query_hs_embeds'] = torch.zeros(0, self.hidden_dim).float().to(device)
-                    # target['track_queries_placeholder_mask'] = torch.zeros(self.num_queries).bool().to(device)
-                    target['track_queries_mask'] = torch.zeros(self.num_queries).bool().to(device)
-                    target['track_queries_fal_pos_mask'] = torch.zeros(self.num_queries).bool().to(device)
+                    # target['track_queries_placeholder_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
+                    target['track_queries_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
+                    target['track_queries_fal_pos_mask'] = torch.zeros(self._object_detection_model.num_queries).bool().to(device)
                     target['track_query_boxes'] = torch.zeros(0, 4).to(device)
                     target['track_query_match_ids'] = torch.tensor([]).long().to(device)
 
