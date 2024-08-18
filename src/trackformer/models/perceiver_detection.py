@@ -18,6 +18,7 @@ class PerceiverDetection(nn.Module):
         # Compatibility with TrackingBaseModel
         self.num_queries = perceiver.latents.shape[0]
         self.hidden_dim = perceiver.latents.shape[1]
+        self.overflow_boxes = False
 
     def forward(self, samples: NestedTensor, targets: list = None, prev_features=None):
         if not isinstance(samples, NestedTensor):
