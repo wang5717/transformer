@@ -135,10 +135,4 @@ def build_model(args, matcher, num_classes):
         latent_dim=args.hidden_dim
     )
 
-    model = PerceiverDetection(
-        backbone,
-        perceiver,
-        classifier_head
-    )
-
-    return model
+    return backbone, perceiver, classifier_head

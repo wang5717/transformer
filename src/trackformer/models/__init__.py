@@ -11,7 +11,7 @@ from .detr_segmentation import (DeformableDETRSegm, DeformableDETRSegmTracking,
                                 PostProcessPanoptic, PostProcessSegm)
 from .detr_tracking import DeformableDETRTracking, DETRTracking
 from .matcher import build_matcher
-from .tracking import TrackingBaseModel
+from .perceiver_tracking import PerceiverTracking
 from .transformer import build_transformer
 from .perceiver_detection import build_model as build_model_perceiver_detection
 
@@ -85,18 +85,24 @@ def build_model(args):
 
 
 def build_model_perceiver_based(args, matcher, num_classes):
-    object_detection_model = build_model_perceiver_detection(args, matcher, num_classes)
+    backbone, perceiver, classifier_head = build_model_perceiver_detection(args, matcher, num_classes)
 
     tracking_kwargs = {
-        'object_detection_model': object_detection_model,
         'track_query_false_positive_prob': args.track_query_false_positive_prob,
         'track_query_false_negative_prob': args.track_query_false_negative_prob,
         'matcher': matcher,
         'backprop_prev_frame': args.track_backprop_prev_frame,
     }
 
-    model = TrackingBaseModel(
-        **tracking_kwargs
+    detection_model_kwargs = {
+        'backbone': backbone,
+        'perceiver': perceiver,
+        'classifier_head': classifier_head,
+    }
+
+    model = PerceiverTracking(
+        tracking_kwargs=tracking_kwargs,
+        detection_model_kwargs=detection_model_kwargs
     )
 
     return model
