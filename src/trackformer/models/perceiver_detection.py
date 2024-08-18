@@ -31,7 +31,17 @@ class PerceiverDetection(nn.Module):
         )
         out = self.classification_head(hs)
 
-        return out, targets, features_nested_tensor, None, hs
+        # TODO: double check if normilization should be disabled
+        out['hs_embed'] = hs
+
+        return (
+            out,
+            targets,
+            features_nested_tensor,
+            None,  # Memory, is an output from encoder
+            hs
+        )
+
 
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
