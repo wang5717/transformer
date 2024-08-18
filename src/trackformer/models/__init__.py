@@ -97,7 +97,7 @@ def build_model_perceiver_based(args, matcher, num_classes):
     detection_model_kwargs = {
         'backbone': backbone,
         'perceiver': perceiver,
-        'classifier_head': classifier_head,
+        'classification_head': classifier_head,
     }
 
     model = PerceiverTracking(
