@@ -30,6 +30,9 @@ class TrackingBaseModel(nn.Module):
         self._tracking = False
         self._object_detection_model = object_detection_model
 
+        # Compatibility
+        self.overflow_boxes = False
+
     def train(self, mode: bool = True):
         """Sets the module in train mode."""
         self._tracking = False
