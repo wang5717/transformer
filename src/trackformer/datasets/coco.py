@@ -334,7 +334,7 @@ def build(image_set, args, mode='instances'):
     dataset = CocoDetection(
         img_folder, ann_file, transforms, norm_transforms,
         return_masks=args.masks,
-        prev_frame=args.tracking,
+        prev_frame=args.tracking or args.force_fetch_previous_frame,
         prev_frame_rnd_augs=prev_frame_rnd_augs,
         prev_prev_frame=args.track_prev_prev_frame,
         min_num_objects=args.coco_min_num_objects)

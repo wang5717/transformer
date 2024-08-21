@@ -15,3 +15,6 @@ enc_nheads_cross: 8  # Number of cross attention heads in the perceiver encoder
 nheads: 1  # Number of heads for latent self-attention
 dropout: 0.0  # Dropout rate in the transformer
 self_per_cross_attn: 8  # Number of self-attention blocks per cross attention
+
+# Dataset
+force_fetch_previous_frame: true
