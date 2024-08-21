@@ -164,7 +164,6 @@ def train(args: Namespace) -> None:
 
         resume_state_dict = {}
         for k, v in model_state_dict.items():
-            print(f'Model state item key: {k} -- {v.shape}')
             if k not in checkpoint_state_dict:
                 resume_value = v
                 print(f'Load {k} {tuple(v.shape)} from scratch.')

@@ -25,6 +25,11 @@ def build_model(args):
         # num_classes = 91
         num_classes = 20
         # num_classes = 1
+        if args.model == 'perceiver':
+            # Not clear why TrackFormer reduces number of classes to 20
+            # Revert it to number of classes in COCO dataset
+            # Perceiver was trained on COCO
+            num_classes = 91
     else:
         raise NotImplementedError
 
