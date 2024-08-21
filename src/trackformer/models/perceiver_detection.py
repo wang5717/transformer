@@ -28,10 +28,16 @@ class PerceiverDetection(nn.Module):
         src, mask = features_nested_tensor.decompose()
         src = src.permute(0, 2, 3, 1)
         assert mask is not None
+        latents = None
+        if targets and '_hs_embed' in targets:
+            latents = targets['_hs_embed']
+            print(f'Assign latents {latents.shape}')
+
         hs = self.perceiver(
             data=src,
             mask=mask,
-            return_embeddings=True
+            return_embeddings=True,
+            latents=latents
         )
         out = self.classification_head(hs)
 

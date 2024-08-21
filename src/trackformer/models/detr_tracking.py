@@ -187,6 +187,8 @@ class DETRTrackingBase(nn.Module):
             track_queries_fal_pos_mask = torch.zeros_like(target_ind_matching).bool()
             track_queries_fal_pos_mask[~target_ind_matching] = True
 
+            # Put previous hidden state as it is for perceiver model
+            target['_hs_embed'] = prev_out['hs_embed']
             # Update target information with the previous frame's embeddings and bounding boxes
             target['track_query_hs_embeds'] = prev_out['hs_embed'][i, prev_out_ind]
             target['track_query_boxes'] = prev_out['pred_boxes'][i, prev_out_ind].detach()
