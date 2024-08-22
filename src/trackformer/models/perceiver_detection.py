@@ -29,11 +29,8 @@ class PerceiverDetection(nn.Module):
         src = src.permute(0, 2, 3, 1)
         assert mask is not None
         latents = None
-        if targets and '_hs_embed' in targets:
-            latents = targets['_hs_embed']
-            print(f'Assign latents {latents.shape}')
-        else:
-            print(f'Skip assigning latents')
+        if targets and '_hs_embed' in targets[0]:
+            latents = torch.stack([target['_hs_embed'] for target in targets]).to(src.device)
 
         hs = self.perceiver(
             data=src,
