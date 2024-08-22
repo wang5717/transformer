@@ -2,7 +2,7 @@
 """
 Backbone modules.
 """
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import torch
 import torch.nn.functional as F
@@ -58,7 +58,7 @@ class FrozenBatchNorm2d(torch.nn.Module):
 class BackboneBase(nn.Module):
 
     def __init__(self, backbone: nn.Module, train_backbone: bool,
-                 return_interm_layers: bool, layers_used: set = None):
+                 return_interm_layers: bool, layers_used: Set = None):
         super().__init__()
         if layers_used is None:
             layers_used = {'layer1', 'layer2', 'layer3', 'layer4'}
@@ -93,7 +93,7 @@ class Backbone(BackboneBase):
                  train_backbone: bool,
                  return_interm_layers: bool,
                  dilation: bool,
-                 layers_used: set[str] = None):
+                 layers_used: Set[str] = None):
         norm_layer = FrozenBatchNorm2d
         backbone = getattr(torchvision.models, name)(
             replace_stride_with_dilation=[False, False, dilation],
