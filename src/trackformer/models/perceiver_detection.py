@@ -32,6 +32,8 @@ class PerceiverDetection(nn.Module):
         if targets and '_hs_embed' in targets:
             latents = targets['_hs_embed']
             print(f'Assign latents {latents.shape}')
+        else:
+            print(f'Skip assigning latents')
 
         hs = self.perceiver(
             data=src,
