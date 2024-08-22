@@ -132,7 +132,7 @@ class DETRTrackingBase(nn.Module):
 
             # random false positives
             # Add random false positives to the predictions if specified
-            if add_false_pos:
+            if add_false_pos and self._track_query_false_positive_prob:
                 # Extract the matched predicted boxes from the previous frame for the current targets
                 prev_boxes_matched = prev_out['pred_boxes'][i, prev_out_ind[target_ind_matching]]
 

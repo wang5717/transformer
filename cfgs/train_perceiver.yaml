@@ -18,3 +18,7 @@ self_per_cross_attn: 8  # Number of self-attention blocks per cross attention
 
 # Dataset
 force_fetch_previous_frame: true
+
+# Training
+track_query_false_positive_prob: 0
+track_query_false_negative_prob: 0
