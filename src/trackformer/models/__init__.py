@@ -11,7 +11,9 @@ from .detr_segmentation import (DeformableDETRSegm, DeformableDETRSegmTracking,
                                 PostProcessPanoptic, PostProcessSegm)
 from .detr_tracking import DeformableDETRTracking, DETRTracking
 from .matcher import build_matcher
+from .perceiver_tracking import PerceiverTracking
 from .transformer import build_transformer
+from .perceiver_detection import build_model as build_model_perceiver_detection
 
 
 def build_model(args):
@@ -23,46 +25,21 @@ def build_model(args):
         # num_classes = 91
         num_classes = 20
         # num_classes = 1
+        if args.model == 'perceiver':
+            # Not clear why TrackFormer reduces number of classes to 20
+            # Revert it to number of classes in COCO dataset
+            # Perceiver was trained on COCO
+            num_classes = 91
     else:
         raise NotImplementedError
 
     device = torch.device(args.device)
-    backbone = build_backbone(args)
     matcher = build_matcher(args)
 
-    detr_kwargs = {
-        'backbone': backbone,
-        'num_classes': num_classes - 1 if args.focal_loss else num_classes,
-        'num_queries': args.num_queries,
-        'aux_loss': args.aux_loss,
-        'overflow_boxes': args.overflow_boxes}
-
-    tracking_kwargs = {
-        'track_query_false_positive_prob': args.track_query_false_positive_prob,
-        'track_query_false_negative_prob': args.track_query_false_negative_prob,
-        'matcher': matcher,
-        'backprop_prev_frame': args.track_backprop_prev_frame,}
-
-    mask_kwargs = {
-        'freeze_detr': args.freeze_detr}
-
-    if args.deformable:
-        raise NotImplementedError('Deformable transformer is not supported.')
+    if args.model == 'perceiver':
+        model = build_model_perceiver_based(args, matcher, num_classes)
     else:
-        transformer = build_transformer(args)
-
-        detr_kwargs['transformer'] = transformer
-
-        if args.tracking:
-            if args.masks:
-                model = DETRSegmTracking(mask_kwargs, tracking_kwargs, detr_kwargs)
-            else:
-                model = DETRTracking(tracking_kwargs, detr_kwargs)
-        else:
-            if args.masks:
-                model = DETRSegm(mask_kwargs, detr_kwargs)
-            else:
-                model = DETR(**detr_kwargs)
+        model = build_model_detr_based(args, matcher, num_classes)
 
     weight_dict = {'loss_ce': args.cls_loss_coef,
                    'loss_bbox': args.bbox_loss_coef,
@@ -110,3 +87,62 @@ def build_model(args):
             postprocessors["panoptic"] = PostProcessPanoptic(is_thing_map, threshold=0.85)
 
     return model, criterion, postprocessors
+
+
+def build_model_perceiver_based(args, matcher, num_classes):
+    backbone, perceiver, classifier_head = build_model_perceiver_detection(args, matcher, num_classes)
+
+    tracking_kwargs = {
+        'track_query_false_positive_prob': args.track_query_false_positive_prob,
+        'track_query_false_negative_prob': args.track_query_false_negative_prob,
+        'matcher': matcher,
+        'backprop_prev_frame': args.track_backprop_prev_frame,
+    }
+
+    detection_model_kwargs = {
+        'backbone': backbone,
+        'perceiver': perceiver,
+        'classification_head': classifier_head,
+    }
+
+    model = PerceiverTracking(
+        tracking_kwargs=tracking_kwargs,
+        detection_model_kwargs=detection_model_kwargs
+    )
+
+    return model
+
+
+def build_model_detr_based(args, matcher, num_classes):
+    backbone = build_backbone(args)
+    detr_kwargs = {
+        'backbone': backbone,
+        'num_classes': num_classes - 1 if args.focal_loss else num_classes,
+        'num_queries': args.num_queries,
+        'aux_loss': args.aux_loss,
+        'overflow_boxes': args.overflow_boxes}
+    tracking_kwargs = {
+        'track_query_false_positive_prob': args.track_query_false_positive_prob,
+        'track_query_false_negative_prob': args.track_query_false_negative_prob,
+        'matcher': matcher,
+        'backprop_prev_frame': args.track_backprop_prev_frame, }
+    mask_kwargs = {
+        'freeze_detr': args.freeze_detr}
+    if args.deformable:
+        raise NotImplementedError('Deformable transformer is not supported.')
+    else:
+        transformer = build_transformer(args)
+
+        detr_kwargs['transformer'] = transformer
+
+        if args.tracking:
+            if args.masks:
+                model = DETRSegmTracking(mask_kwargs, tracking_kwargs, detr_kwargs)
+            else:
+                model = DETRTracking(tracking_kwargs, detr_kwargs)
+        else:
+            if args.masks:
+                model = DETRSegm(mask_kwargs, detr_kwargs)
+            else:
+                model = DETR(**detr_kwargs)
+    return model
