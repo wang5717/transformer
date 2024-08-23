@@ -1,4 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
+# Modifications copyright (C) 2024 Maksim Ploter
+
 """
 COCO dataset which returns image_id for evaluation.
 
@@ -25,11 +28,12 @@ class CocoDetection(torchvision.datasets.CocoDetection):
     def __init__(self,  img_folder, ann_file, transforms, norm_transforms,
                  return_masks=False, overflow_boxes=False, remove_no_obj_imgs=True,
                  prev_frame=False, prev_frame_rnd_augs=0.0, prev_prev_frame=False,
-                 min_num_objects=0):
+                 min_num_objects=0, sequence_frames=None):
         super(CocoDetection, self).__init__(img_folder, ann_file)
         self._transforms = transforms
         self._norm_transforms = norm_transforms
         self.prepare = ConvertCocoPolysToMask(return_masks, overflow_boxes)
+        self._sequence_frames = sequence_frames
 
         annos_image_ids = [
             ann['image_id'] for ann in self.coco.loadAnns(self.coco.getAnnIds())]
@@ -41,11 +45,43 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
             self.ids = [i for i in self.ids if counter[i] >= min_num_objects]
 
+        ids_without_seq_tails = []
+
+        sequence_start_idx = 0
+
+        while self._sequence_frames:
+            if sequence_start_idx >= len(self.ids):
+                self.ids = ids_without_seq_tails
+                break
+            assert list(self.coco.imgs.keys()) == self.ids
+
+            img = self.coco.dataset['images'][sequence_start_idx]
+
+            seq_name = [s for s in self.coco.dataset['sequences'] if img['file_name'].startswith(s)][0]
+
+            assert img['frame_id'] == 0
+
+            seq_length = img['seq_length']
+
+            segments = seq_length // self._sequence_frames
+
+            ids_to_add = self.ids[sequence_start_idx:sequence_start_idx + (segments * self._sequence_frames)]
+
+            ids_without_seq_tails.extend(ids_to_add)
+            for _id in ids_to_add:
+                i = self.coco.imgs[_id]
+                assert i['file_name'].startswith(seq_name)
+
+            print(f'Works for {seq_name}')
+
+            # move to the next sequence
+            sequence_start_idx += seq_length
+
         self._prev_frame = prev_frame
         self._prev_frame_rnd_augs = prev_frame_rnd_augs
         self._prev_prev_frame = prev_prev_frame
 
-    def _getitem_from_id(self, image_id, random_state=None, random_jitter=True):
+    def _getitem_from_id(self, idx, random_state=None, random_jitter=True):
         # if random state is given we do the data augmentation with the state
         # and then apply the random jitter. this ensures that (simulated) adjacent
         # frames have independent jitter.
@@ -56,34 +92,59 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             random.setstate(random_state['random'])
             torch.random.set_rng_state(random_state['torch'])
 
-        img, target = super(CocoDetection, self).__getitem__(image_id)
-        image_id = self.ids[image_id]
-        target = {'image_id': image_id,
-                  'annotations': target}
-        img, target = self.prepare(img, target)
+        if self._sequence_frames:
+            idx = idx * self._sequence_frames
+            sl = self._sequence_frames
+        else:
+            idx = idx
+            sl = 1
 
-        if 'track_ids' not in target:
-            target['track_ids'] = torch.arange(len(target['labels']))
+        imgs = []
+        targets = []
+        seq_name = None
+        for i in range(idx, idx + sl):
+            img, target = super(CocoDetection, self).__getitem__(i)
 
-        if self._transforms is not None:
-            img, target = self._transforms(img, target)
+            if seq_name is None:
+                seq_name = self.coco.dataset['images'][i]['file_name'][0:-11]
+                print(seq_name)
+            else:
+                assert self.coco.dataset['images'][i]['file_name'][0:-11] == seq_name
 
-        # ignore
-        ignore = target.pop("ignore").bool()
-        for field in self.fields:
-            if field in target:
-                target[f"{field}_ignore"] = target[field][ignore]
-                target[field] = target[field][~ignore]
+            image_id = self.ids[i]
+            target = {'image_id': image_id,
+                      'annotations': target}
 
-        if random_state is not None:
-            random.setstate(curr_random_state['random'])
-            torch.random.set_rng_state(curr_random_state['torch'])
+            img, target = self.prepare(img, target)
 
-        if random_jitter:
-            img, target = self._add_random_jitter(img, target)
-        img, target = self._norm_transforms(img, target)
+            if 'track_ids' not in target:
+                target['track_ids'] = torch.arange(len(target['labels']))
 
-        return img, target
+            if self._transforms is not None:
+                img, target = self._transforms(img, target)
+
+            # ignore
+            ignore = target.pop("ignore").bool()
+            for field in self.fields:
+                if field in target:
+                    target[f"{field}_ignore"] = target[field][ignore]
+                    target[field] = target[field][~ignore]
+
+            if random_state is not None:
+                random.setstate(curr_random_state['random'])
+                torch.random.set_rng_state(curr_random_state['torch'])
+
+            if random_jitter:
+                img, target = self._add_random_jitter(img, target)
+            img, target = self._norm_transforms(img, target)
+
+            imgs.append(img)
+            targets.append(target)
+
+        if len(imgs) == 1:
+            return imgs[0], targets[0]
+
+        return imgs, targets
 
     # TODO: add to the transforms and merge norm_transforms into transforms
     def _add_random_jitter(self, img, target):
@@ -101,47 +162,6 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             img, target = T.resize(img, target, (orig_w, orig_h))
 
         return img, target
-
-    # def _add_random_jitter(self, img, target):
-    #     if self._prev_frame_rnd_augs: # and random.uniform(0, 1) < 0.5:
-    #         orig_w, orig_h = img.size
-
-    #         width, height = img.size
-    #         size = random.randint(
-    #             int((1.0 - self._prev_frame_rnd_augs) * min(width, height)),
-    #             int((1.0 + self._prev_frame_rnd_augs) * min(width, height)))
-    #         img, target = T.RandomResize([size])(img, target)
-
-    #         width, height = img.size
-    #         min_size = (
-    #             int((1.0 - self._prev_frame_rnd_augs) * width),
-    #             int((1.0 - self._prev_frame_rnd_augs) * height))
-    #         transform = T.RandomSizeCrop(min_size=min_size)
-    #         img, target = transform(img, target)
-
-    #         width, height = img.size
-    #         if orig_w < width:
-    #             img, target = T.RandomCrop((height, orig_w))(img, target)
-    #         else:
-    #             total_pad = orig_w - width
-    #             pad_left = random.randint(0, total_pad)
-    #             pad_right = total_pad - pad_left
-
-    #             padding = (pad_left, 0, pad_right, 0)
-    #             img, target = T.pad(img, target, padding)
-
-    #         width, height = img.size
-    #         if orig_h < height:
-    #             img, target = T.RandomCrop((orig_h, width))(img, target)
-    #         else:
-    #             total_pad = orig_h - height
-    #             pad_top = random.randint(0, total_pad)
-    #             pad_bottom = total_pad - pad_top
-
-    #             padding = (0, pad_top, 0, pad_bottom)
-    #             img, target = T.pad(img, target, padding)
-
-    #     return img, target
 
     def __getitem__(self, idx):
         random_state = {
@@ -165,6 +185,9 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
     def write_result_files(self, *args):
         pass
+
+    def __len__(self) -> int:
+        return len(self.ids) // self._sequence_frames if self._sequence_frames else 1
 
 
 def convert_coco_poly_to_mask(segmentations, height, width):
@@ -334,7 +357,7 @@ def build(image_set, args, mode='instances'):
     dataset = CocoDetection(
         img_folder, ann_file, transforms, norm_transforms,
         return_masks=args.masks,
-        prev_frame=args.tracking or args.force_fetch_previous_frame,
+        prev_frame=args.tracking,
         prev_frame_rnd_augs=prev_frame_rnd_augs,
         prev_prev_frame=args.track_prev_prev_frame,
         min_num_objects=args.coco_min_num_objects)
