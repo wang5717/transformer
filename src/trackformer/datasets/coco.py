@@ -1,4 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
+# Modifications copyright (C) 2024 Maksim Ploter
+
 """
 COCO dataset which returns image_id for evaluation.
 
