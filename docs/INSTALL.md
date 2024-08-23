@@ -8,15 +8,17 @@
 
 2. Install packages for Python 3.8:
 
-    1. `conda create -n perceiver_track python=3.8`
+    1. `conda create -n perceiver_track python=3.10`
     2. `conda activate perceiver_track`
     3. `conda install conda-forge::motmetrics=1.2.0`
     3. `pip install sacred==0.8.5` it didn't work with conda `conda install conda-forge::sacred=0.8.5`
     3. `pip install visdom==0.1.8.9` it didn't work with conda `conda install conda-forge::visdom=0.1.8.9`
     3. `conda install conda-forge::pycocotools`
+    3. `conda install conda-forge::einops`
     3. `conda install scikit-image==0.17.2` # it is needed for dataset conversion
     3. `conda install conda-forge::tqdm=4.46.1`
     3. `conda install conda-forge::seaborn=0.10.1`
+    3. `conda install conda-forge::opencv`
     3. `pip install perceiver-pytorch`
 
     5. Install MultiScaleDeformableAttention
