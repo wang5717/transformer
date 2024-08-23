@@ -118,7 +118,7 @@ coco_min_num_objects: 0
 img_transform:
   max_size: 1333
   val_width: 800
-force_fetch_previous_frame: false
+sequence_frames: null
 # Miscellaneous
 # path where to save, empty for no saving
 output_dir: ''
