@@ -18,6 +18,8 @@ class PerceiverTracking(PerceiverDetection):
 
         result = {'pred_logits': [], 'pred_boxes': []}
         latents = None
+
+        targets_flat = []
         for timestamp, batch in enumerate(src):
             current_targets = [target_list[timestamp] for target_list in targets]
             out, *_ = super().forward(
@@ -26,7 +28,8 @@ class PerceiverTracking(PerceiverDetection):
             latents = out['hs_embed']
             result['pred_logits'].append(out['pred_logits'])
             result['pred_boxes'].append(out['pred_boxes'])
+            targets_flat.extend(current_targets)
 
         result['pred_logits'] = torch.cat(result['pred_logits'], dim=0)
         result['pred_boxes'] = torch.cat(result['pred_boxes'], dim=0)
-        return result
+        return result, targets_flat
