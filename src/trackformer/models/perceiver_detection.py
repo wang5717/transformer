@@ -1,7 +1,7 @@
-from torch import nn
-from torch import Tensor
 import torch
 import torch.nn.functional as F
+from torch import Tensor
+from torch import nn
 
 from trackformer.models import build_backbone
 from trackformer.models.perceiver import Perceiver
@@ -20,7 +20,7 @@ class PerceiverDetection(nn.Module):
         self.hidden_dim = perceiver.latents.shape[1]
         self.overflow_boxes = False
 
-    def forward(self, samples: NestedTensor, targets: list = None, prev_features=None):
+    def forward(self, samples: NestedTensor, targets: list = None, latents: Tensor =None):
         if not isinstance(samples, NestedTensor):
             samples = nested_tensor_from_tensor_list(samples)
 
@@ -28,8 +28,7 @@ class PerceiverDetection(nn.Module):
         src, mask = features_nested_tensor.decompose()
         src = src.permute(0, 2, 3, 1)
         assert mask is not None
-        latents = None
-        if targets and '_hs_embed' in targets[0]:
+        if latents is None and (targets and '_hs_embed' in targets[0]):
             latents = torch.stack([target['_hs_embed'] for target in targets]).to(src.device)
 
         hs = self.perceiver(

@@ -1,4 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+
+# Modifications copyright (C) 2024 Maksim Ploter
 """
 Misc functions, including distributed helpers.
 
@@ -604,10 +606,14 @@ def nested_dict_to_namespace(dictionary):
             setattr(namespace, key, nested_dict_to_namespace(value))
     return namespace
 
+
 def nested_dict_to_device(dictionary, device):
     output = {}
     if isinstance(dictionary, dict):
         for key, value in dictionary.items():
             output[key] = nested_dict_to_device(value, device)
         return output
+    elif isinstance(dictionary, list):
+        # If it's a list, apply recursively to each item in the list
+        return [nested_dict_to_device(item, device) for item in dictionary]
     return dictionary.to(device)
