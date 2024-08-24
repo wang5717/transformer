@@ -293,7 +293,32 @@ def get_sha():
 
 def collate_fn(batch):
     batch = list(zip(*batch))
-    batch[0] = nested_tensor_from_tensor_list(batch[0])
+    if isinstance(batch[0][0], list):
+        sequences = batch[0]
+
+        # Convert each sequence of images to a nested tensor
+        sequences_nested_tensors = [nested_tensor_from_tensor_list(seq) for seq in sequences]
+
+        # Convert sequences_nested_tensors to a batch tensor (B, T, H, W, C)
+        max_seq_len = max(len(seq) for seq in sequences)
+        batch_size = len(sequences_nested_tensors)
+        max_size = _max_by_axis([list(img.shape) for seq in sequences for img in seq])
+
+        batch_shape = [batch_size, max_seq_len] + max_size
+        b, t, c, h, w = batch_shape
+        dtype = sequences[0][0].dtype
+        device = sequences[0][0].device
+        tensor = torch.zeros(batch_shape, dtype=dtype, device=device)
+        mask = torch.ones((b, t, h, w), dtype=torch.bool, device=device)
+
+        for i, seq in enumerate(sequences_nested_tensors):
+            for j, img in enumerate(seq.tensors):
+                tensor[i, j, : img.shape[0], : img.shape[1], : img.shape[2]].copy_(img)
+                mask[i, j, : img.shape[1], : img.shape[2]] = False
+
+        batch[0] = NestedTensor(tensor, mask)
+    else:
+        batch[0] = nested_tensor_from_tensor_list(batch[0])
     return tuple(batch)
 
 

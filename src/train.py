@@ -123,8 +123,7 @@ def train(args: Namespace) -> None:
     dataset_val = build_dataset(split='val', args=args)
 
     if args.distributed:
-        sampler_train = utils.DistributedWeightedSampler(dataset_train)
-        # sampler_train = DistributedSampler(dataset_train)
+        sampler_train = DistributedSampler(dataset_train)
         sampler_val = DistributedSampler(dataset_val, shuffle=False)
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)

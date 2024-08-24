@@ -187,7 +187,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         pass
 
     def __len__(self) -> int:
-        return len(self.ids) // self._sequence_frames if self._sequence_frames else 1
+        return len(self.ids) // (self._sequence_frames if self._sequence_frames else 1)
 
 
 def convert_coco_poly_to_mask(segmentations, height, width):
