@@ -7,13 +7,11 @@ COCO dataset which returns image_id for evaluation.
 
 Mostly copy-paste from https://github.com/pytorch/vision/blob/13b35ff/references/detection/coco_utils.py
 """
-import copy
 import random
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 import torch
-import torch.nn.functional as F
 import torch.utils.data
 import torchvision
 from pycocotools import mask as coco_mask
@@ -49,6 +47,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
         sequence_start_idx = 0
 
+        # TODO: add support for shorter sequences
         while self._sequence_frames:
             if sequence_start_idx >= len(self.ids):
                 self.ids = ids_without_seq_tails
@@ -71,8 +70,6 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             for _id in ids_to_add:
                 i = self.coco.imgs[_id]
                 assert i['file_name'].startswith(seq_name)
-
-            print(f'Works for {seq_name}')
 
             # move to the next sequence
             sequence_start_idx += seq_length
@@ -107,7 +104,6 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
             if seq_name is None:
                 seq_name = self.coco.dataset['images'][i]['file_name'][0:-11]
-                print(seq_name)
             else:
                 assert self.coco.dataset['images'][i]['file_name'][0:-11] == seq_name
 
@@ -187,7 +183,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         pass
 
     def __len__(self) -> int:
-        return len(self.ids) // self._sequence_frames if self._sequence_frames else 1
+        return len(self.ids) // (self._sequence_frames if self._sequence_frames else 1)
 
 
 def convert_coco_poly_to_mask(segmentations, height, width):
