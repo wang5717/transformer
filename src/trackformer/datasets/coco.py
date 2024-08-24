@@ -91,23 +91,24 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
         if self._sequence_frames:
             idx = idx * self._sequence_frames
-            sl = self._sequence_frames
+            seq_len_frames = self._sequence_frames
         else:
             idx = idx
-            sl = 1
+            seq_len_frames = 1
 
         imgs = []
         targets = []
         seq_name = None
-        for i in range(idx, idx + sl):
+        for i in range(idx, idx + seq_len_frames):
             img, target = super(CocoDetection, self).__getitem__(i)
+            image_id = self.ids[i]
 
             if seq_name is None:
-                seq_name = self.coco.dataset['images'][i]['file_name'][0:-11]
+                seq_name = self.coco.dataset['images'][image_id]['file_name'][0:-11]
             else:
-                assert self.coco.dataset['images'][i]['file_name'][0:-11] == seq_name
+                assert self.coco.dataset['images'][image_id]['file_name'][0:-11] == seq_name, \
+                    f'dataset sequence name {self.coco.dataset["images"][image_id]["file_name"][0:-11]} and seq_name {seq_name}'
 
-            image_id = self.ids[i]
             target = {'image_id': image_id,
                       'annotations': target}
 
