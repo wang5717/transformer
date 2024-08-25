@@ -12,9 +12,10 @@ class PerceiverTracking(PerceiverDetection):
         src, mask = samples.decompose()
 
         if len(src.shape) < 5:
+            # samples without a time dimension
             return super().forward(samples, targets)
 
-        src = src.permute(1, 0, 2, 3, 4)  # TB___
+        src = src.permute(1, 0, 2, 3, 4)  # change dimension order from BT___ to TB___
 
         result = {'pred_logits': [], 'pred_boxes': []}
         latents = None
@@ -22,6 +23,10 @@ class PerceiverTracking(PerceiverDetection):
         targets_flat = []
         for timestamp, batch in enumerate(src):
             current_targets = [target_list[timestamp] for target_list in targets]
+            frame_keep_mask = [t['keep_frame'] for t in current_targets]
+            frame_keep_mask = torch.tensor(frame_keep_mask, device=batch.device)
+            frame_keep_mask = frame_keep_mask.view(-1, 1, 1, 1)
+            batch = batch * frame_keep_mask
             out, *_ = super().forward(
                 samples=batch, targets=current_targets, latents=latents
             )

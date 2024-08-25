@@ -26,12 +26,13 @@ class CocoDetection(torchvision.datasets.CocoDetection):
     def __init__(self,  img_folder, ann_file, transforms, norm_transforms,
                  return_masks=False, overflow_boxes=False, remove_no_obj_imgs=True,
                  prev_frame=False, prev_frame_rnd_augs=0.0, prev_prev_frame=False,
-                 min_num_objects=0, sequence_frames=None):
+                 min_num_objects=0, sequence_frames=None, frame_dropout_prob=0.0):
         super(CocoDetection, self).__init__(img_folder, ann_file)
         self._transforms = transforms
         self._norm_transforms = norm_transforms
         self.prepare = ConvertCocoPolysToMask(return_masks, overflow_boxes)
         self._sequence_frames = sequence_frames
+        self._frame_dropout_prob = frame_dropout_prob
 
         annos_image_ids = [
             ann['image_id'] for ann in self.coco.loadAnns(self.coco.getAnnIds())]
@@ -90,24 +91,27 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             torch.random.set_rng_state(random_state['torch'])
 
         if self._sequence_frames:
-            idx = idx * self._sequence_frames
-            sl = self._sequence_frames
+            sequence_start_idx = idx * self._sequence_frames
+            seq_len_frames = self._sequence_frames
         else:
-            idx = idx
-            sl = 1
+            sequence_start_idx = idx
+            seq_len_frames = 1
 
+        frame_keep_probs = torch.rand(self._sequence_frames)
+        keep_frame_flags = (frame_keep_probs > self._frame_dropout_prob).int()
         imgs = []
         targets = []
         seq_name = None
-        for i in range(idx, idx + sl):
+        for i in range(sequence_start_idx, sequence_start_idx + seq_len_frames):
             img, target = super(CocoDetection, self).__getitem__(i)
+            image_id = self.ids[i]
 
             if seq_name is None:
-                seq_name = self.coco.dataset['images'][i]['file_name'][0:-11]
+                seq_name = self.coco.dataset['images'][image_id]['file_name'][0:-11]
             else:
-                assert self.coco.dataset['images'][i]['file_name'][0:-11] == seq_name
+                assert self.coco.dataset['images'][image_id]['file_name'][0:-11] == seq_name, \
+                    f'dataset sequence name {self.coco.dataset["images"][image_id]["file_name"][0:-11]} and seq_name {seq_name}'
 
-            image_id = self.ids[i]
             target = {'image_id': image_id,
                       'annotations': target}
 
@@ -134,6 +138,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
                 img, target = self._add_random_jitter(img, target)
             img, target = self._norm_transforms(img, target)
 
+            target['keep_frame'] = keep_frame_flags[i-sequence_start_idx]
             imgs.append(img)
             targets.append(target)
 
