@@ -14,7 +14,6 @@ from pathlib import Path
 
 import torch
 
-from . import transforms as T
 from .coco import CocoDetection, make_coco_transforms
 from .coco import build as build_coco
 from .crowdhuman import build_crowdhuman
@@ -161,7 +160,8 @@ def build_mot(image_set, args):
         prev_frame_rnd_augs=prev_frame_rnd_augs,
         prev_prev_frame=args.track_prev_prev_frame,
         sequence_frames=args.sequence_frames,
-        )
+        frame_dropout_prob=args.frame_dropout_prob,
+    )
 
     return dataset
 
