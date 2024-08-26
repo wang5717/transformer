@@ -9,8 +9,8 @@ import sys
 from typing import Iterable
 
 import torch
-from track import ex
 
+from track import ex
 from .datasets import get_coco_api_from_dataset
 from .datasets.coco_eval import CocoEvaluator
 from .datasets.panoptic_eval import PanopticEvaluator
@@ -354,4 +354,4 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     if args.debug:
         exit()
 
-    return eval_stats, coco_evaluator
+    return stats, eval_stats, coco_evaluator

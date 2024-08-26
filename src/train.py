@@ -38,6 +38,7 @@ ex.add_named_config('multi_frame', 'cfgs/train_multi_frame.yaml')
 ex.add_named_config('perceiver', 'cfgs/train_perceiver.yaml')
 ex.add_named_config('tune_sequence_frames', 'cfgs/train_tune_sequence_frames.yaml')
 
+
 def train(args: Namespace) -> None:
     print(args)
 
@@ -266,7 +267,7 @@ def train(args: Namespace) -> None:
                     visualizers[k][k_inner].win = checkpoint['vis_win_names'][k][k_inner]
 
     if args.eval_only:
-        _, coco_evaluator = evaluate(
+        _, _, coco_evaluator = evaluate(
             model, criterion, postprocessors, data_loader_val, device,
             output_dir, visualizers['val'], args, 0)
         if args.output_dir:
@@ -296,11 +297,11 @@ def train(args: Namespace) -> None:
 
         checkpoint_paths = [output_dir / 'checkpoint.pth']
 
-        val_stats = {}
+        test_stats = {}
 
         # VAL
         if epoch == 1 or not epoch % args.val_interval:
-            val_stats, _ = evaluate(
+            test_stats, val_stats, _ = evaluate(
                 model, criterion, postprocessors, data_loader_val, device,
                 output_dir, visualizers['val'], args, epoch)
 
@@ -326,7 +327,7 @@ def train(args: Namespace) -> None:
                     checkpoint_paths.append(output_dir / f"checkpoint_best_{n}.pth")
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                     **{f'test_{k}': v for k, v in val_stats.items()},
+                     **{f'test_{k}': v for k, v in test_stats.items()},
                      'epoch': epoch,
                      'n_parameters': n_parameters}
 
