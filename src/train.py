@@ -387,6 +387,8 @@ def run_sweep(args):
             # TODO: make dynamic
             args.sequence_frames = wandb.config.sequence_frames
             train(args)
+            print(f'Finishing wandb.')
+            wandb.finish()
 
     sweep_id = wandb.sweep(sweep=sweep_configuration, project="perceiver_track_sweep")
     wandb.agent(sweep_id, function=train_sweep)
@@ -398,7 +400,7 @@ if __name__ == '__main__':
     args = nested_dict_to_namespace(config)
 
     if args.task == 'tune':
-        wandb.init(project='perceiver_track')
         run_sweep(args)
     else:
+        wandb.init(project='perceiver_track')
         train(args)
