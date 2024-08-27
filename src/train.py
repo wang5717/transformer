@@ -331,7 +331,7 @@ def train(args: Namespace) -> None:
                      'epoch': epoch,
                      'n_parameters': n_parameters}
 
-        wandb.log(log_stats)
+        wandb.log(log_stats, step=epoch)
 
         # MODEL SAVING
         if args.output_dir:
@@ -373,7 +373,7 @@ def run_sweep(args):
             'goal': 'minimize'
         },
         'parameters': {
-            'sequence_frames': {'values': [16, 32, 64]}
+            'sequence_frames': {'values': [32, 64]}
         },
         'early_terminate': {
             'type': 'hyperband',
