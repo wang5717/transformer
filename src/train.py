@@ -355,6 +355,7 @@ def train(args: Namespace) -> None:
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
+    utils.destroy_distributed_mode(args)
 
 
 @ex.main
@@ -372,14 +373,14 @@ def run_sweep(args):
             'goal': 'minimize'
         },
         'parameters': {
-            'sequence_frames': {'values': [8, 16, 32, 64]}
+            'sequence_frames': {'values': [16, 32, 64]}
         },
         'early_terminate': {
             'type': 'hyperband',
-            'max_iter': 12,
+            'max_iter': 16,
             's': 3,
             'eta': 3,
-            'strict': False,
+            'strict': True,
         }
     }
 

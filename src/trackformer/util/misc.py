@@ -471,6 +471,12 @@ def init_distributed_mode(args):
     setup_for_distributed(args.rank == 0)
 
 
+def destroy_distributed_mode(args):
+    if args.distributed:
+        print('Destroying distributed mode')
+        torch.distributed.destroy_process_group()
+
+
 @torch.no_grad()
 def accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""

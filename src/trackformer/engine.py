@@ -352,6 +352,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
         visualizers['epoch_eval'].plot(eval_stats, epoch)
 
     if args.debug:
+        utils.destroy_distributed_mode(args)
         exit()
 
     return stats, eval_stats, coco_evaluator
