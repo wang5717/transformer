@@ -374,14 +374,18 @@ def load_config(_config, _run):
 
 def run_sweep(args):
     sweep_configuration = {
-        'method': 'grid',
-        'name': 'sequence_frames',
+        'method': 'bayes',
+        'name': 'learning_rate_sweep',
         'metric': {
             'name': 'test_loss',
             'goal': 'minimize'
         },
         'parameters': {
-            'sequence_frames': {'values': [32, 64]}
+            'lr': {
+                'distribution': 'uniform',
+                'min': 1e-5,
+                'max': 1e-3,
+            }
         },
         'early_terminate': {
             'type': 'hyperband',
@@ -395,7 +399,8 @@ def run_sweep(args):
     def train_sweep():
         with wandb.init(project='perceiver_track'): #  TODO: create argument
             # TODO: make dynamic
-            args.sequence_frames = wandb.config.sequence_frames
+            args.lr = wandb.config.lr
+            args.lr_backbone = float(wandb.config.lr) / 10
             train(args)
             print(f'Finishing wandb.')
             wandb.finish()
