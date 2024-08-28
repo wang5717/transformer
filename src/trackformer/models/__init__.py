@@ -11,9 +11,9 @@ from .detr_segmentation import (DeformableDETRSegm, DeformableDETRSegmTracking,
                                 PostProcessPanoptic, PostProcessSegm)
 from .detr_tracking import DeformableDETRTracking, DETRTracking
 from .matcher import build_matcher
+from .perceiver_detection import build_model as build_model_perceiver_detection
 from .perceiver_tracking import PerceiverTracking
 from .transformer import build_transformer
-from .perceiver_detection import build_model as build_model_perceiver_detection
 
 
 def build_model(args):
@@ -22,14 +22,24 @@ def build_model(args):
     elif args.dataset == 'coco_panoptic':
         num_classes = 250
     elif args.dataset in ['coco_person', 'mot', 'mot_crowdhuman', 'crowdhuman', 'mot_coco_person']:
-        # num_classes = 91
+        # We inherited the 20 classes setup from the original Deformable DETR code.
+        # The focal loss is more stable with more classes. You can train with any amount of output neurons.
+        # It will just learn to never predict the others and only the one class or background.
+        # https://github.com/timmeinhardt/trackformer/issues/120#issuecomment-1885045880
+
+        # Computing the focal loss for a single class introduces some noise
+        # which we found to be less if we increase the number of classes. The number 20 is a bit arbitrary here.
+        # https://github.com/timmeinhardt/trackformer/issues/50#issuecomment-1173942985
         num_classes = 20
-        # num_classes = 1
         if args.model == 'perceiver':
             # Not clear why TrackFormer reduces number of classes to 20
             # Revert it to number of classes in COCO dataset
             # Perceiver was trained on COCO
-            num_classes = 91
+
+            # IN COCO_CLASSES[:2] -> [N/A, Person]
+            # We are only interested in 1 clas Person,
+            # so N is 1, but according to DETR paper we add 1 (account for zero indexed array)
+            num_classes = 2
     else:
         raise NotImplementedError
 

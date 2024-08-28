@@ -200,13 +200,21 @@ def train(args: Namespace) -> None:
                 elif 'linear2' in k or 'input_proj' in k:
                     resume_value = checkpoint_value.repeat((2,) + (num_dims - 1) * (1, ))
                 elif 'class_embed' in k:
-                    # person and no-object class
-                    # resume_value = checkpoint_value[[1, -1]]
-                    # resume_value = checkpoint_value[[0, -1]]
-                    # resume_value = checkpoint_value[[1,]]
-                    resume_value = checkpoint_value[list(range(0, 20))]
-                    # resume_value = v
-                    # print(f'Load {k} {tuple(v.shape)} from scratch.')
+                    if args.model == 'perceiver':
+                        resume_value = checkpoint_value[[
+                            0,  # N/A
+                            1,  # Person
+                            91  # Background class (COCO has 90 classes)
+                        ]]
+                    else:
+                        # DEFAULT CODE SNIPPET FROM TABLEFORMER PAPER:
+                        # person and no-object class
+                        # resume_value = checkpoint_value[[1, -1]]
+                        # resume_value = checkpoint_value[[0, -1]]
+                        # resume_value = checkpoint_value[[1,]]
+                        resume_value = checkpoint_value[list(range(0, 20))]
+                        # resume_value = v
+                        # print(f'Load {k} {tuple(v.shape)} from scratch.')
                 else:
                     raise NotImplementedError(f"No rule for {k} with shape {v.shape}.")
 
