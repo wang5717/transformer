@@ -375,7 +375,7 @@ def load_config(_config, _run):
 def run_sweep(args):
     sweep_configuration = {
         'method': 'bayes',
-        'name': 'learning_rate_sweep',
+        'name': 'learning_rate_sweep_v2',
         'metric': {
             'name': 'test_loss',
             'goal': 'minimize'
@@ -383,8 +383,8 @@ def run_sweep(args):
         'parameters': {
             'lr': {
                 'distribution': 'uniform',
-                'min': 1e-5,
-                'max': 1e-3,
+                'min': 5e-5,
+                'max': 5e-4,
             }
         },
         'early_terminate': {
