@@ -237,12 +237,12 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
         if coco_evaluator is not None:
             # Keep evaluation for 0 consecutive_frame_skip_number only for compatibility.
             # It's redundant after we have a breakdown per skip number.
-            results_orig = {
+            results_for_no_dropped_frames = {
                 target['image_id'].item(): output
                 for target, output in zip(targets, results_orig) if target['consecutive_frame_skip_number'].item() == 0
             }
 
-            coco_evaluator.update(results_orig)
+            coco_evaluator.update(results_for_no_dropped_frames)
 
             # Break evaluation by the number of dropped frames
             results_orig_breakdown_by_consecutive_frame_drop = {}
