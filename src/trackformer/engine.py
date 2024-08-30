@@ -241,10 +241,6 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
                 target['image_id'].item(): output
                 for target, output in zip(targets, results_orig) if target['consecutive_frame_skip_number'].item() == 0
             }
-
-            print("results_for_no_dropped_frames")
-            print(type(results_for_no_dropped_frames))
-            print(results_for_no_dropped_frames.keys())
             coco_evaluator.update(results_for_no_dropped_frames)
 
             # Break evaluation by the number of dropped frames
@@ -266,9 +262,6 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
                     # Add coco evaluator for dedicated skip frame number
                     coco_evaluators_per_consecutive_frame_skip_number.append(CocoEvaluator(base_ds, iou_types))
 
-                print("r: ")
-                print(type(r))
-                print(r.keys())
                 coco_evaluators_per_consecutive_frame_skip_number[skip_number].update(r)
 
         if panoptic_evaluator is not None:
@@ -384,10 +377,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
         eval_stats.extend(stats['coco_eval_masks'][:3])
     if 'track_bbox' in stats:
         eval_stats.extend(stats['track_bbox'])
-    if coco_evaluators_per_consecutive_frame_skip_number:
-        for k, v in stats:
-            if k.startswith('coco_eval_bbox_consecutive_frame_skip_'):
-                eval_stats.extend(v)
+
     # VIS
     if visualizers:
         vis_epoch = visualizers['epoch_metrics']
