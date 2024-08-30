@@ -235,30 +235,34 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
 
         # TODO. remove cocoDts from coco eval and change example results output
         if coco_evaluator is not None:
+            # Keep evaluation for 0 consecutive_frame_skip_number only for compatibility.
+            # It's redundant after we have a breakdown per skip number.
             results_orig = {
                 target['image_id'].item(): output
-                for target, output in zip(targets, results_orig)}
+                for target, output in zip(targets, results_orig) if target['consecutive_frame_skip_number'].item() == 0
+            }
 
             coco_evaluator.update(results_orig)
 
-            if args.frame_dropout_prob:
-                results_orig_breakdown_by_consecutive_frame_drop = {}
+            # Break evaluation by the number of dropped frames
+            results_orig_breakdown_by_consecutive_frame_drop = {}
+            for target, output in zip(targets, results_orig):
+                consecutive_frame_skip_number = target['consecutive_frame_skip_number'].item()
+                image_id = target['image_id'].item()
 
-                for target, output in zip(targets, results_orig):
-                    consecutive_frame_skip_number = target['consecutive_frame_skip_number'].item()
-                    image_id = target['image_id'].item()
+                if consecutive_frame_skip_number in results_orig_breakdown_by_consecutive_frame_drop:
+                    results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number][
+                        image_id] = output
+                else:
+                    results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number] = {
+                        image_id: output
+                    }
 
-                    if consecutive_frame_skip_number in results_orig_breakdown_by_consecutive_frame_drop:
-                        results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number][
-                            image_id] = output
-                    else:
-                        results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number] = {
-                            image_id: output}
-
-                for skip_number, r in dict(sorted(results_orig_breakdown_by_consecutive_frame_drop.items())).items():
-                    if (skip_number + 1) > len(coco_evaluators_per_consecutive_frame_skip_number):
-                        coco_evaluators_per_consecutive_frame_skip_number[skip_number] = CocoEvaluator(base_ds, iou_types)
-                    coco_evaluators_per_consecutive_frame_skip_number[skip_number].update(r)
+            for skip_number, r in dict(sorted(results_orig_breakdown_by_consecutive_frame_drop.items())).items():
+                if skip_number == len(coco_evaluators_per_consecutive_frame_skip_number):
+                    # Add coco evaluator for dedicated skip frame number
+                    coco_evaluators_per_consecutive_frame_skip_number.append(CocoEvaluator(base_ds, iou_types))
+                coco_evaluators_per_consecutive_frame_skip_number[skip_number].update(r)
 
         if panoptic_evaluator is not None:
             target_sizes = torch.stack([t["size"] for t in targets], dim=0)

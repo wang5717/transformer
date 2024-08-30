@@ -116,6 +116,7 @@ def build_model_perceiver_based(args, matcher, num_classes):
     }
 
     model = PerceiverTracking(
+        max_num_of_frames_lookback=args.max_num_of_frames_lookback,
         tracking_kwargs=tracking_kwargs,
         detection_model_kwargs=detection_model_kwargs
     )
