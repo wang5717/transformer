@@ -200,7 +200,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
-    for i, (samples, targets) in enumerate(metric_logger.log_every(data_loader, 'Test:')):
+    for i, (samples, targets) in enumerate(metric_logger.log_every(data_loader, header=f'Test epoch: [{epoch}]')):
         samples = samples.to(device)
         targets = [utils.nested_dict_to_device(t, device) for t in targets]
 
