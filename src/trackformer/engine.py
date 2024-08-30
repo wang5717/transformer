@@ -242,6 +242,9 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
                 for target, output in zip(targets, results_orig) if target['consecutive_frame_skip_number'].item() == 0
             }
 
+            print("results_for_no_dropped_frames")
+            print(type(results_for_no_dropped_frames))
+            print(results_for_no_dropped_frames.keys())
             coco_evaluator.update(results_for_no_dropped_frames)
 
             # Break evaluation by the number of dropped frames
@@ -262,6 +265,10 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
                 if skip_number == len(coco_evaluators_per_consecutive_frame_skip_number):
                     # Add coco evaluator for dedicated skip frame number
                     coco_evaluators_per_consecutive_frame_skip_number.append(CocoEvaluator(base_ds, iou_types))
+
+                print("r: ")
+                print(type(r))
+                print(r.keys())
                 coco_evaluators_per_consecutive_frame_skip_number[skip_number].update(r)
 
         if panoptic_evaluator is not None:
@@ -282,6 +289,10 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     print("Averaged stats:", metric_logger)
     if coco_evaluator is not None:
         coco_evaluator.synchronize_between_processes()
+    if coco_evaluators_per_consecutive_frame_skip_number:
+        print('Sync breakdown coco evaluators')
+        for ce in coco_evaluators_per_consecutive_frame_skip_number:
+            ce.synchronize_between_processes()
     if panoptic_evaluator is not None:
         panoptic_evaluator.synchronize_between_processes()
 
