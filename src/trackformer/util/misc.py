@@ -623,3 +623,45 @@ def nested_dict_to_device(dictionary, device):
         # If it's a list, apply recursively to each item in the list
         return [nested_dict_to_device(item, device) for item in dictionary]
     return dictionary.to(device)
+
+
+def flatten_stats(stats, prefix_dict=None):
+    """
+    Flattens list values in the test_stats dictionary.
+
+    Args:
+    - test_stats (dict): Dictionary containing test statistics.
+    - prefix_dict (dict, optional): Dictionary containing prefix for specific keys.
+
+    Returns:
+    - dict: Flattened test statistics with new keys.
+    """
+    flattened_stats = {}
+
+    for k, v in stats.items():
+        if isinstance(v, list) and all(isinstance(i, (int, float)) for i in v):
+            # If the value is a list of numeric values
+            for idx, num in enumerate(v):
+                # Determine the prefix to use: either from prefix_dict or fallback to the index
+                if prefix_dict and (k in prefix_dict
+                                    or any(k.startswith(prefix_key) for prefix_key in prefix_dict.keys())):
+                    prefix = None
+
+                    for prefix_key in prefix_dict.keys():
+                        if k.startswith(prefix_key):
+                            prefix = prefix_dict[prefix_key]
+                            break
+
+                    if prefix:
+                        if isinstance(prefix, list) and len(prefix) > idx:
+                            prefix = prefix[idx]
+                        else:
+                            prefix = f'{prefix}_{idx}'
+                else:
+                    prefix = idx  # Fallback to the index if no custom prefix
+                flattened_key = f'{k}_{prefix}'
+                flattened_stats[flattened_key] = num
+        else:
+            # If the value is not a list of numeric values, just use the original key-value
+            flattened_stats[f'{k}'] = v
+    return flattened_stats

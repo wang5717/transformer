@@ -310,7 +310,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     if coco_evaluators_per_consecutive_frame_skip_number:
         print('Store coco evaluator breakdown results')
         for i, ce in enumerate(coco_evaluators_per_consecutive_frame_skip_number):
-            stats[f'coco_eval_bbox_consecutive_frame_skip_{i}'] = ce.coco_eval['bbox'].stats.tolist()
+            stats[f'coco_eval_bbox_consec_frame_drop_{i}'] = ce.coco_eval['bbox'].stats.tolist()
     if panoptic_res is not None:
         stats['PQ_all'] = panoptic_res["All"]
         stats['PQ_th'] = panoptic_res["Things"]
