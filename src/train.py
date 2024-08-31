@@ -415,7 +415,7 @@ def run_sweep(args):
     }
 
     def train_sweep():
-        with wandb.init(project='perceiver_track'): #  TODO: create argument
+        with wandb.init(**get_wandb_init_config(args)):
             # TODO: make dynamic
             args.lr = wandb.config.lr
             args.lr_backbone = float(wandb.config.lr) / 10
@@ -427,6 +427,18 @@ def run_sweep(args):
     wandb.agent(sweep_id, function=train_sweep)
 
 
+def get_wandb_init_config(args):
+    result = {
+        'project': args.wandb_project
+    }
+
+    if args.wandb_id:
+        result['id'] = args.wandb_id
+        result['resume'] = 'must'
+
+    return result
+
+
 if __name__ == '__main__':
     # TODO: hierachical Namespacing for nested dict
     config = ex.run_commandline().config
@@ -435,5 +447,5 @@ if __name__ == '__main__':
     if args.task == 'tune':
         run_sweep(args)
     else:
-        wandb.init(project='perceiver_track')
+        wandb.init(**get_wandb_init_config(args))
         train(args)

@@ -1,1 +1,3 @@
 task: 'tune'
+
+wandb_project: 'perceiver_track_sweep'
