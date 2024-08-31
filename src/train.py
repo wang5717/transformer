@@ -334,8 +334,26 @@ def train(args: Namespace) -> None:
                 if b_s == s:
                     checkpoint_paths.append(output_dir / f"checkpoint_best_{n}.pth")
 
+        prefix_dict = {'coco_eval_bbox': [
+                'AP_IoU_50_to_95_area_all_maxDet_100',
+                'AP_IoU_50_area_all_maxDet_100',
+                'AP_IoU_75_area_all_maxDet_100',
+                'AP_IoU_50_to_95_area_small_maxDet_100',
+                'AP_IoU_50_to_95_area_medium_maxDet_100',
+                'AP_IoU_50_to_95_area_large_maxDet_100',
+                'AR_IoU_50_to_95_area_all_maxDet_1',
+                'AR_IoU_50_to_95_area_all_maxDet_10',
+                'AR_IoU_50_to_95_area_all_maxDet_100',
+                'AR_IoU_50_to_95_area_small_maxDet_100',
+                'AR_IoU_50_to_95_area_medium_maxDet_100',
+                'AR_IoU_50_to_95_area_large_maxDet_100'
+            ]
+        }
+
+        flattened_test_stats = utils.flatten_stats(test_stats, prefix_dict)
+
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                     **{f'test_{k}': v for k, v in test_stats.items()},
+                     **{f'test_{k}': v for k, v in flattened_test_stats.items()},
                      'epoch': epoch,
                      'n_parameters': n_parameters}
 

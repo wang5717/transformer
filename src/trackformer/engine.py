@@ -190,7 +190,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     base_ds = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = tuple(k for k in ('bbox', 'segm') if k in postprocessors.keys())
     coco_evaluator = CocoEvaluator(base_ds, iou_types)
-    # coco_evaluator.coco_eval[iou_types[0]].params.iouThrs = [0, 0.1, 0.5, 0.75]
+    coco_evaluators_per_consecutive_frame_skip_number = []
 
     panoptic_evaluator = None
     if 'panoptic' in postprocessors.keys():
@@ -200,7 +200,7 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
 
-    for i, (samples, targets) in enumerate(metric_logger.log_every(data_loader, 'Test:')):
+    for i, (samples, targets) in enumerate(metric_logger.log_every(data_loader, header=f'Test epoch: [{epoch}]')):
         samples = samples.to(device)
         targets = [utils.nested_dict_to_device(t, device) for t in targets]
 
@@ -235,11 +235,34 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
 
         # TODO. remove cocoDts from coco eval and change example results output
         if coco_evaluator is not None:
-            results_orig = {
+            # Keep evaluation for 0 consecutive_frame_skip_number only for compatibility.
+            # It's redundant after we have a breakdown per skip number.
+            results_for_no_dropped_frames = {
                 target['image_id'].item(): output
-                for target, output in zip(targets, results_orig)}
+                for target, output in zip(targets, results_orig) if target['consecutive_frame_skip_number'].item() == 0
+            }
+            coco_evaluator.update(results_for_no_dropped_frames)
 
-            coco_evaluator.update(results_orig)
+            # Break evaluation by the number of dropped frames
+            results_orig_breakdown_by_consecutive_frame_drop = {}
+            for target, output in zip(targets, results_orig):
+                consecutive_frame_skip_number = target['consecutive_frame_skip_number'].item()
+                image_id = target['image_id'].item()
+
+                if consecutive_frame_skip_number in results_orig_breakdown_by_consecutive_frame_drop:
+                    results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number][
+                        image_id] = output
+                else:
+                    results_orig_breakdown_by_consecutive_frame_drop[consecutive_frame_skip_number] = {
+                        image_id: output
+                    }
+
+            for skip_number, r in dict(sorted(results_orig_breakdown_by_consecutive_frame_drop.items())).items():
+                if skip_number == len(coco_evaluators_per_consecutive_frame_skip_number):
+                    # Add coco evaluator for dedicated skip frame number
+                    coco_evaluators_per_consecutive_frame_skip_number.append(CocoEvaluator(base_ds, iou_types))
+
+                coco_evaluators_per_consecutive_frame_skip_number[skip_number].update(r)
 
         if panoptic_evaluator is not None:
             target_sizes = torch.stack([t["size"] for t in targets], dim=0)
@@ -259,6 +282,10 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     print("Averaged stats:", metric_logger)
     if coco_evaluator is not None:
         coco_evaluator.synchronize_between_processes()
+    if coco_evaluators_per_consecutive_frame_skip_number:
+        print('Sync breakdown coco evaluators')
+        for ce in coco_evaluators_per_consecutive_frame_skip_number:
+            ce.synchronize_between_processes()
     if panoptic_evaluator is not None:
         panoptic_evaluator.synchronize_between_processes()
 
@@ -266,6 +293,11 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
     if coco_evaluator is not None:
         coco_evaluator.accumulate()
         coco_evaluator.summarize()
+    if coco_evaluators_per_consecutive_frame_skip_number:
+        print('Accumulating breakdown coco evaluators')
+        for ce in coco_evaluators_per_consecutive_frame_skip_number:
+            ce.accumulate()
+            ce.summarize()
     panoptic_res = None
     if panoptic_evaluator is not None:
         panoptic_res = panoptic_evaluator.summarize()
@@ -275,6 +307,10 @@ def evaluate(model, criterion, postprocessors, data_loader, device,
             stats['coco_eval_bbox'] = coco_evaluator.coco_eval['bbox'].stats.tolist()
         if 'segm' in coco_evaluator.coco_eval:
             stats['coco_eval_masks'] = coco_evaluator.coco_eval['segm'].stats.tolist()
+    if coco_evaluators_per_consecutive_frame_skip_number:
+        print('Store coco evaluator breakdown results')
+        for i, ce in enumerate(coco_evaluators_per_consecutive_frame_skip_number):
+            stats[f'coco_eval_bbox_consec_frame_drop_{i}'] = ce.coco_eval['bbox'].stats.tolist()
     if panoptic_res is not None:
         stats['PQ_all'] = panoptic_res["All"]
         stats['PQ_th'] = panoptic_res["Things"]

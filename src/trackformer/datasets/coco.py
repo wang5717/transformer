@@ -102,6 +102,9 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         imgs = []
         targets = []
         seq_name = None
+
+        consecutive_skip_number = 0
+
         for i in range(sequence_start_idx, sequence_start_idx + seq_len_frames):
             img, target = super(CocoDetection, self).__getitem__(i)
             image_id = self.ids[i]
@@ -139,6 +142,14 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             img, target = self._norm_transforms(img, target)
 
             target['keep_frame'] = keep_frame_flags[i-sequence_start_idx]
+
+            if target['keep_frame'].item():
+                consecutive_skip_number = 0
+            else:
+                consecutive_skip_number += 1
+
+            target['consecutive_frame_skip_number'] = torch.tensor(consecutive_skip_number)
+
             imgs.append(img)
             targets.append(target)
 
