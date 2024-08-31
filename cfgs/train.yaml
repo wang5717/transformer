@@ -1,4 +1,6 @@
 task: 'train'
+wandb_project: 'detr_track'
+wandb_id: null
 lr: 0.0002
 lr_backbone_names: ['backbone.0']
 lr_backbone: 0.00002
