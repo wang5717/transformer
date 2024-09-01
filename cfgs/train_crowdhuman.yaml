@@ -7,8 +7,8 @@ frame_dropout_prob: 0.0
 sequence_frames: null # We pick same img buy apply a different transformation
 
 # Training
-epochs: 80
-lr_drop: 50
+epochs: 90
+lr_drop: 60
 
 # Evaluation
-max_num_of_frames_lookback: 0
+max_num_of_frames_lookback: 1
