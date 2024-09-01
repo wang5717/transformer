@@ -4,9 +4,8 @@ Generates COCO data and annotation structure from CrowdHuman data.
 """
 import json
 import os
-import cv2
 
-from generate_coco_from_mot import check_coco_from_mot
+import cv2
 
 DATA_ROOT = 'data/CrowdHuman'
 VIS_THRESHOLD = 0.0
@@ -116,8 +115,5 @@ def generate_coco_from_crowdhuman(split_name='train_val', split='train_val'):
 
 if __name__ == '__main__':
     generate_coco_from_crowdhuman(split_name='train_val', split='train_val')
-    # generate_coco_from_crowdhuman(split_name='train', split='train')
-
-    # coco_dir = os.path.join('data/CrowdHuman', 'train_val')
-    # annotation_file = os.path.join('data/CrowdHuman/annotations', 'train_val.json')
-    # check_coco_from_mot(coco_dir, annotation_file, img_id=9012)
+    generate_coco_from_crowdhuman(split_name='train', split='train')
+    generate_coco_from_crowdhuman(split_name='val', split='val')
