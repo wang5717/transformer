@@ -8,7 +8,7 @@ from torch.utils.data import ConcatDataset
 
 from .demo_sequence import DemoSequence
 from .mot_wrapper import MOT17Wrapper, MOT20Wrapper, MOTS20Wrapper
-from .spine_sequence import SpineWrapper, SpineSequence
+from .spine_sequence import SpineWrapper, SpineSequence, SequenceHelper
 
 DATASETS = {}
 
@@ -40,7 +40,10 @@ for split in ['val']:
     DATASETS[name] = (
         lambda kwargs, split=split: SpineWrapper(split, **kwargs))
     
-for name in ['aid052N1D1_tp1_stack1', 'aid052N1D1_tp1_stack2']:
+custom_sequences_train = SequenceHelper.get_sequence_names(f"{SpineSequence.data_folder}/annotations/train.json")
+custom_sequences_val = SequenceHelper.get_sequence_names(f"{SpineSequence.data_folder}/annotations/val.json")
+
+for name in custom_sequences_train + custom_sequences_val:
     DATASETS[name] = (lambda kwargs: [SpineSequence(seq_name=name, **kwargs), ])
 
 DATASETS['DEMO'] = (lambda kwargs: [DemoSequence(**kwargs), ])

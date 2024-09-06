@@ -20,6 +20,20 @@ from ..coco import make_coco_transforms
 from ..transforms import Compose
 
 
+class SequenceHelper:
+    @staticmethod
+    def get_sequence_names(annotation_filepath: str):
+        """
+        Read the JSON annotation file and return all sequences defined in there
+
+        Params:
+            annotation_filename     The annotation file
+        """
+        with open(annotation_filepath) as f:
+            content = json.load(f)
+        return content['sequences']
+
+
 class SpineSequence(Dataset):
     """SpineSequence, Custom Spine Dataset.
     """
@@ -40,8 +54,8 @@ class SpineSequence(Dataset):
 
         self._data_dir = osp.join(root_dir, self.data_folder)
 
-        self._train_seqs = ['aid052N1D1_tp1_stack1']
-        self._val_seqs = ['aid052N1D1_tp1_stack2']
+        self._train_seqs = SequenceHelper.get_sequence_names(f"{self._data_dir}/annotations/train.json")
+        self._val_seqs = SequenceHelper.get_sequence_names(f"{self._data_dir}/annotations/val.json")
 
         self.transforms = Compose(make_coco_transforms('val', img_transform, overflow_boxes=True))
         self.data = []
@@ -77,7 +91,7 @@ class SpineSequence(Dataset):
 
         sample = {}
         sample['img'] = img
-        # sample['dets'] = torch.tensor([det[:4] for det in data['dets']])
+        sample['dets'] = torch.empty((0,4))
         sample['img_path'] = data['im_path']
         sample['gt'] = data['gt']
         sample['vis'] = data['vis']
@@ -244,9 +258,8 @@ class SpineWrapper(Dataset):
         split -- the split of the dataset to use
         kwargs -- kwargs for the MOT20Sequence dataset
         """
-        # TODO: fill
-        train_sequences = ['aid052N1D1_tp1_stack1']
-        val_sequences = ['aid052N1D1_tp1_stack2']
+        train_sequences = SequenceHelper.get_sequence_names(f"{self._data_dir}/annotations/train.json")
+        val_sequences = SequenceHelper.get_sequence_names(f"{self._data_dir}/annotations/val.json")
 
         if split == "train":
             sequences = train_sequences

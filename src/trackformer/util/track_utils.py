@@ -393,7 +393,6 @@ def get_mot_accum(results, seq_loader):
             track_boxes = np.array([])
 
         distance = mm.distances.iou_matrix(gt_boxes, track_boxes, max_iou=0.5)
-
         mot_accum.update(
             gt_ids,
             track_ids,

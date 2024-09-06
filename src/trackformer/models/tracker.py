@@ -436,6 +436,7 @@ class Tracker:
             new_det_attention_maps = new_det_attention_maps[new_det_keep]
 
         # public detection
+        print("BLOB", blob.keys())
         public_detections_mask = self.public_detections_mask(
             new_det_boxes, blob['dets'][0])
 

@@ -91,6 +91,7 @@ class DETRTrackingBase(nn.Module):
 
             # random false positives
             if add_false_pos:
+                prev_out_ind = prev_out_ind.to(device)
                 prev_boxes_matched = prev_out['pred_boxes'][i, prev_out_ind[target_ind_matching]]
 
                 not_prev_out_ind = torch.arange(prev_out['pred_boxes'].shape[1])
