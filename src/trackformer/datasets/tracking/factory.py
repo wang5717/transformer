@@ -40,8 +40,8 @@ for split in ['val']:
     DATASETS[name] = (
         lambda kwargs, split=split: SpineWrapper(split, **kwargs))
     
-custom_sequences_train = SequenceHelper.get_sequence_names(f"{SpineSequence.data_folder}/annotations/train.json")
-custom_sequences_val = SequenceHelper.get_sequence_names(f"{SpineSequence.data_folder}/annotations/val.json")
+custom_sequences_train = SequenceHelper.get_sequence_names(f"data/{SpineSequence.data_folder}/annotations/train.json")
+custom_sequences_val = SequenceHelper.get_sequence_names(f"data/{SpineSequence.data_folder}/annotations/val.json")
 
 for name in custom_sequences_train + custom_sequences_val:
     DATASETS[name] = (lambda kwargs: [SpineSequence(seq_name=name, **kwargs), ])

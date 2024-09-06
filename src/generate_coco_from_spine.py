@@ -101,7 +101,7 @@ def generate_coco_from_spine(split_name='train_val', split='train_val'):
 
 if __name__ == '__main__':
     # generate_coco_from_spine(split_name='train_val', split='train_val')
-    for split in ['train', 'val']:
+    for split in ['train', 'val', 'test']:
         generate_coco_from_spine(split_name=split, split=split)
 
     # coco_dir = os.path.join('data/CrowdHuman', 'train_val')

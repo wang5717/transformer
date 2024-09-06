@@ -23,7 +23,9 @@ src/trackformer/models/ops/dist*
 src/trackformer/models/ops/lib*
 src/trackformer/models/ops/temp*
 
+checkpoints/
 data/
+models/
 out_sbatch/
 *.sh
 
