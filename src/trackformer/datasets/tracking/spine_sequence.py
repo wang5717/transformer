@@ -37,7 +37,7 @@ class SequenceHelper:
 class SpineSequence(Dataset):
     """SpineSequence, Custom Spine Dataset.
     """
-    data_folder = 'spine'
+    data_folder = os.getenv('DATASET') if os.getenv('DATASET') else 'spine' 
 
     def __init__(self, root_dir: str = 'data', seq_name: Optional[str] = None, 
                  vis_threshold: float = 0.0, img_transform: Namespace = None) -> None:
@@ -48,6 +48,7 @@ class SpineSequence(Dataset):
                                    above which they are selected
         """
         super().__init__()
+        print("SPINE DATASET CONSTRUCTOR", seq_name, root_dir)
         
         self._seq_name = seq_name
         self._vis_threshold = vis_threshold
@@ -72,10 +73,9 @@ class SpineSequence(Dataset):
         # print(f'LEN annotations: {len(self.annotations)}')
         
         self.data = self._sequence()
-        print(f'DATA LEN: {len(self.data)}')
-        print(f'DATA: {self.data}')
 
         self.no_gt = not osp.exists(self.get_gt_file_path())
+        print("CREATED", seq_name, self._seq_name, "I", len(self.images), "A", len(self.annotations))
 
     def __len__(self) -> int:
         return len(self.data)
@@ -99,6 +99,9 @@ class SpineSequence(Dataset):
         sample['size'] = torch.as_tensor([int(height), int(width)])
 
         return sample
+    
+    def __str__(self):
+        return f"Sequence: {self._seq_name}, length: {len(self.data)}, images: {len(self.images)}, annotations: {len(self.annotations)}"
 
     def _sequence(self) -> dict:
         total = []
@@ -145,30 +148,29 @@ class SpineSequence(Dataset):
         img_ids = {}
         for metadata in self.images:
             frame_id = int(metadata['frame_id'])
-            img_ids[frame_id] = metadata['file_name']
-        
-        print(f'IMG_IDS: {img_ids}')
-        
+            img_ids[frame_id] = metadata['file_name']        
         return img_ids
 
     def get_track_boxes_and_visibility(self) -> Tuple[dict, dict]:
         """ Load ground truth boxes and their visibility."""
         boxes = {}
         visibility = {}
+        image_ids = []
 
         for i in range(self.seq_length):
             boxes[i] = {}
             visibility[i] = {}
         
         for annot in self.annotations:
+            image_id = int(annot['image_id'])
+            if image_id not in image_ids:
+                image_ids.append(image_id)
             xywh = annot['bbox'] 
-            frame_id = int(annot['image_id'])
+            frame_id = image_ids.index(image_id)
             track_id = int(annot['track_id'])
             
             boxes[frame_id][track_id] = np.array([xywh[0], xywh[1], xywh[0]+xywh[2]-1, xywh[1]+xywh[3]-1], dtype=np.float32)
             visibility[frame_id][track_id] = float(annot['visibility'] )
-        
-        print(f'BOXES: {boxes}')
         
         return boxes, visibility
 

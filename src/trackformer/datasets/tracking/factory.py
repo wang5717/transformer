@@ -71,9 +71,9 @@ class TrackDatasetFactory:
             assert dataset in DATASETS, f"[!] Dataset not found: {dataset}"
 
             if self._data is None:
-                self._data = DATASETS[dataset](kwargs)
+                self._data = [SpineSequence(seq_name=dataset, **kwargs), ]
             else:
-                self._data = ConcatDataset([self._data, DATASETS[dataset](kwargs)])
+                self._data = ConcatDataset([self._data, [SpineSequence(seq_name=dataset, **kwargs), ]])
 
     def __len__(self) -> int:
         return len(self._data)

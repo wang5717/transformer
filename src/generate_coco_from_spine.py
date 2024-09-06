@@ -4,7 +4,7 @@ import cv2
 import pandas as pd
 import numpy as np
  
-DATA_ROOT = 'data/spine_dataset'
+DATA_ROOT = "data/" + os.getenv('DATASET') if os.getenv('DATASET') else "data/spine_dataset"
 VIS_THRESHOLD = 0.0
 
 
@@ -49,7 +49,7 @@ def generate_coco_from_spine(split_name='train_val', split='train_val'):
         os.path.splitext(img_dict['file_name'])[0]: img_dict['id']
         for img_dict in annotations['images']}
 
-    for split in ['train', 'val']:
+    for split in ['train', 'val', 'test']:
         if split not in split_name:
             continue
         annos_file = os.path.join(DATA_ROOT, f'annotations/{split}.csv')
@@ -84,7 +84,6 @@ def generate_coco_from_spine(split_name='train_val', split='train_val'):
                 "seq": filename.split('_layer')[0],
                 "track_id": int(track_ids[i]),
             }
-            # TODO: add "seq", "track_id"
 
             annotation_id += 1
             annotations['annotations'].append(annotation)
